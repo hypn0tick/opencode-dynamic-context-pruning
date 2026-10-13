@@ -84,6 +84,9 @@
     "files": [
         "dist/",
         "lib/",
+        ".claude-plugin/plugin.json",
+        "mods/compress/",
+        "!mods/compress/**/*.test.ts",
         "server.js",
         "tui.tsx",
         "README.md",

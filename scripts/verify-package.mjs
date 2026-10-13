@@ -1,6 +1,6 @@
 import { builtinModules, createRequire } from "node:module"
 import { existsSync, readFileSync, statSync } from "node:fs"
-import { execFileSync } from "node:child_process"
+import { execSync } from "node:child_process"
 import path from "node:path"
 import process from "node:process"
 import { fileURLToPath } from "node:url"
@@ -32,10 +32,20 @@ const requiredTarballFiles = [
     "server.js",
     "README.md",
     "LICENSE",
+    // The package root is also the Claude Code plugin, installed from npm as is.
+    ".claude-plugin/plugin.json",
+    "dist/claude/claude-loader.mjs",
+    "dist/claude/tiktoken_bg.wasm",
+    "mods/compress/hooks/hooks.json",
+    "mods/compress/hooks/register.ts",
+    "mods/compress/scripts/uninstall.mjs",
+    "mods/compress/commands/dcp-compress.md",
 ]
 
 const forbiddenTarballPatterns = [
     /^node_modules\//,
+    /\.test\.tsx?$/,
+    /^\.claude-plugin\/marketplace\.json$/,
     /^index\.ts$/,
     /^tests\//,
     /^scripts\//,
@@ -213,10 +223,8 @@ function validateRuntimeImportGraph() {
 }
 
 function validatePackedFiles() {
-    const output = execFileSync("npm", ["pack", "--dry-run", "--json"], {
-        cwd: root,
-        encoding: "utf8",
-    })
+    // A command string runs through the shell, which finds npm.cmd on Windows
+    const output = execSync("npm pack --dry-run --json", { cwd: root, encoding: "utf8" })
 
     // npm versions return either an array or an object keyed by package name.
     const [result] = Object.values(JSON.parse(output))

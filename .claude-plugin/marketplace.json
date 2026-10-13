@@ -1,0 +1,17 @@
+{
+    "name": "claude-dcp-tarquinen",
+    "description": "Dynamic Context Pruning (DCP) for Claude Code: model-driven compression of stale conversation context.",
+    "owner": {
+        "name": "tarquinen"
+    },
+    "plugins": [
+        {
+            "name": "dcp",
+            "description": "Dynamic Context Pruning for Claude Code, from the @tarquinen/opencode-dcp npm package.",
+            "source": {
+                "source": "npm",
+                "package": "@tarquinen/opencode-dcp"
+            }
+        }
+    ]
+}

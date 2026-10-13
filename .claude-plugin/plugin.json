@@ -1,0 +1,9 @@
+{
+    "name": "dcp",
+    "version": "3.2.0",
+    "description": "Dynamic Context Pruning for Claude Code: compresses stale conversation ranges on the wire through a Bun preload the plugin stages, with a mod that answers the compress tool.",
+    "author": { "name": "tarquinen" },
+    "repository": "https://github.com/Opencode-DCP/opencode-dynamic-context-pruning",
+    "hooks": "./mods/compress/hooks/hooks.json",
+    "commands": ["./mods/compress/commands/dcp.md", "./mods/compress/commands/dcp-compress.md"]
+}

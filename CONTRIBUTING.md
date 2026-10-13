@@ -209,3 +209,50 @@ snapshots are saved in the lab output.
 To check another V2 release, build the lab image with `--build-arg V2=VERSION`
 and pass that image's tag as the final argument to `ui.py`. Use a separate copy of
 the lab output when testing different releases so their databases stay independent.
+
+## Claude Code Adapter
+
+`lib/claude/` runs the compression engine against Claude Code's Anthropic Messages
+requests without an OpenCode server. A wire proxy converts each request to the
+engine's `WithParts[]`, runs the same transform sequence as the V2 binding, routes
+a model `compress` call to `createCompressRangeTool`, and converts the result back;
+the engine and the compress tool under `lib/` are reused unchanged. Claude Code's
+mid-conversation system messages (hook output and reminders, the last of which
+carries its message cache breakpoint) and the first user message (CLAUDE.md and
+memory context) stay out of the engine and go back verbatim, so they are never
+compressed and the cached prefix holds. `start()` installs the proxy by wrapping
+`globalThis.fetch` and `Bun.FetchSession`.
+
+The npm package is also the Claude Code plugin. Its root `.claude-plugin/plugin.json`
+points at `mods/compress/`: a mod that registers `compress` and answers the model's
+call (the proxy renames the call to `mcp__dcp__compress` so it reaches the mod),
+and the `/dcp:dcp` and `/dcp:dcp-compress` commands. The repository's
+`.claude-plugin/marketplace.json` installs the plugin from npm
+(`claude plugin install dcp@claude-dcp-tarquinen`). `npm run build` bundles
+`lib/claude/boot.ts` and the tokenizer wasm into `dist/claude/`. At session start
+the mod stages them in a version-independent dir and adds a `--preload` for the
+loader to `BUN_OPTIONS`, so Claude Code's embedded Bun loads it from the next launch:
+User scope on Windows, a `~/.config/environment.d` file on Linux (desktop-session
+apps, from the next login), and launchd's environment plus a login agent on macOS.
+It runs in-process with the OS's own tools, so the plugin needs no Node; it needs
+Claude Code 2.1.287 or later, where mods load by default, or
+`CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1` on an earlier build. The loader's self-guard
+(`lib/claude/selfclean.ts`) removes the `--preload` once Claude Code's install
+registry shows the plugin uninstalled in every scope, and leaves the staged loader
+in place, since a `--preload` naming a missing file stops Claude Code from starting.
+
+Each response's reported usage (input, cache read and cache write) sizes the next
+request for the nudges, the way OpenCode's per-message tokens do. If the adapter
+throws, the request goes out unmodified. Only one DCP loader (of either engine)
+wraps `fetch` in a process.
+
+The mod's description and result are what the model reads only where the proxy is
+not handling a request, so both say DCP is not active and nothing was compressed;
+the proxy replaces them otherwise. The user's transcript always shows the result.
+
+Unit tests are `tests/claude-*.test.ts` and run under `npm test`;
+`tests/claude-adapter-apply.test.ts` checks the outcome itself, that a compress call
+shrinks the outbound transcript and keeps it shrunk across requests and a restart.
+Validate the mod with `claude plugin test mods/compress` (set
+`CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1` on builds that still gate mods) and the
+plugin with `claude plugin validate .claude-plugin/plugin.json`.

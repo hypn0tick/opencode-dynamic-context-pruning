@@ -17,6 +17,21 @@ opencode plugin add @tarquinen/opencode-dcp@latest
 
 This installs the package and adds it to your global OpenCode config.
 
+### Claude Code
+
+The same package is also a Claude Code plugin (Claude Code 2.1.287 or later):
+
+```bash
+claude plugin marketplace add Tarquinen/opencode-dynamic-context-pruning
+claude plugin install dcp@claude-dcp-tarquinen
+```
+
+Restart Claude Code once after installing. On Linux, log out and back in so apps
+started from your desktop session pick it up; the status line says when anything else
+is needed. `/dcp:dcp` shows whether DCP is active and `/dcp:dcp-compress` compresses
+on demand. Settings come from the same `dcp.jsonc`. See
+[CONTRIBUTING.md](CONTRIBUTING.md#claude-code-adapter) for how it works.
+
 ## Project Status
 
 Development on DCP has slowed because most new context-management work has moved to [Sleev](https://sleev.ai) and the `sleev` CLI.

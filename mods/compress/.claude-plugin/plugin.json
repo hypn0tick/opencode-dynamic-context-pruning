@@ -1,0 +1,5 @@
+{
+    "name": "dcp",
+    "version": "0.1.0",
+    "description": "The compress mod alone, for `claude plugin test mods/compress`; the installable plugin is the package root."
+}
